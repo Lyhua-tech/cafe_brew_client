@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'home_view.dart';
 import 'explore_view.dart';
 import 'announcement_view.dart';
+import 'cart_view.dart';
+import 'favorites_view.dart';
 
 class MainLayoutView extends StatefulWidget {
   const MainLayoutView({super.key});
@@ -17,8 +18,9 @@ class _MainLayoutViewState extends State<MainLayoutView> {
   final List<Widget> _pages = [
     const HomeView(),
     const ExploreView(),
+    const CartView(),
+    const FavoritesView(),
     const AnnouncementView(),
-    const Center(child: Text("Profile Page under construction")), // Placeholder
   ];
 
   @override
@@ -43,16 +45,8 @@ class _MainLayoutViewState extends State<MainLayoutView> {
           type: BottomNavigationBarType.fixed,
           selectedItemColor: const Color(0xFFCB8944),
           unselectedItemColor: const Color(0xFFCDCED2),
-          showSelectedLabels: true,
-          showUnselectedLabels: true,
-          selectedLabelStyle: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
-          unselectedLabelStyle: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w400,
-          ),
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),
@@ -60,19 +54,24 @@ class _MainLayoutViewState extends State<MainLayoutView> {
               label: "Home",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.search_outlined),
-              activeIcon: Icon(Icons.search_rounded),
+              icon: Icon(Icons.explore_outlined),
+              activeIcon: Icon(Icons.explore),
               label: "Explore",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_cart_outlined),
+              activeIcon: Icon(Icons.shopping_cart),
+              label: "Cart",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.favorite_outline),
+              activeIcon: Icon(Icons.favorite),
+              label: "Favorites",
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.notifications_none_outlined),
               activeIcon: Icon(Icons.notifications_active),
               label: "Updates",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: "Profile",
             ),
           ],
         ),

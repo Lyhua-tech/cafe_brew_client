@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'viewmodels/home_viewmodel.dart';
 import 'viewmodels/auth_viewmodel.dart';
+import 'viewmodels/favorites_viewmodel.dart'; // Added this import
 import 'views/splash_view.dart';
 import 'utils/colors.dart';
 
@@ -9,10 +9,12 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => HomeViewModel()),
+        // Removed HomeViewModel, kept AuthViewModel, added FavoritesViewModel
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider(create: (_) => FavoritesViewModel()),
       ],
-      child: const MyApp(),
+      child:
+          const MyApp(), // Kept MyApp as per original structure, assuming the CafeBrewApp was a typo in the instruction's example
     ),
   );
 }

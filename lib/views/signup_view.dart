@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'main_layout_view.dart';
 
 class SignUpView extends StatefulWidget {
   const SignUpView({super.key});
@@ -101,7 +102,11 @@ class _SignUpViewState extends State<SignUpView> {
                 child: ElevatedButton(
                   onPressed: () {
                     // Sign up Logic
-                    Navigator.pop(context);
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MainLayoutView()),
+                      (route) => false,
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFCB8944),

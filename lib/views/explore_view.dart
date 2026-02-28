@@ -7,195 +7,145 @@ class ExploreView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Dummy products just to show on Explore page until Figma is accessible
+    final List<Map<String, dynamic>> dummyProducts = [
+      {"id": "p1", "name": "Iced Latte", "price": "\$4.50"},
+      {"id": "p2", "name": "Hot Cappuccino", "price": "\$3.99"},
+      {"id": "p3", "name": "Pepperoni Cheese Pizza", "price": "\$12.99"},
+      {"id": "p4", "name": "Avocado Toast", "price": "\$8.50"},
+    ];
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        leading: const SizedBox.shrink(),
         title: Text(
           "Explore",
           style: GoogleFonts.poppins(
             color: const Color(0xFF363A33),
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list, color: Color(0xFF363A33)),
-            onPressed: () {},
-          ),
-        ],
       ),
-      body: SafeArea(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Filter Pills
+            // Search Bar Placeholder
             Container(
-              height: 60,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(
-                  bottom: BorderSide(color: Color(0xFFE8EBE6), width: 1),
-                ),
-              ),
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                children: [
-                  _buildFilterPill("Coffee", true),
-                  _buildFilterPill("Tea", false),
-                  _buildFilterPill("Juice", false),
-                  _buildFilterPill("Bakery", false),
-                  _buildFilterPill("Snack", false),
-                ],
-              ),
-            ),
-
-            // Product Grid
-            Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.all(16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.75,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                itemCount: 6,
-                itemBuilder: (context, index) {
-                  return _buildProductGridCard(context, index);
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterPill(String label, bool isSelected) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFCB8944) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isSelected ? const Color(0xFFCB8944) : const Color(0xFFCDCED2),
-        ),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.poppins(
-          color: isSelected ? Colors.white : const Color(0xFF70756B),
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProductGridCard(BuildContext context, int index) {
-    final images = [
-      "assets/images/cold_brew.png",
-      "assets/images/home_banner.png",
-    ];
-    final names = ["Cold Brew", "Latte Art"];
-    final prices = ["\$4.50", "\$5.20"];
-
-    final isEven = index % 2 == 0;
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ProductDetailView(
-              title: isEven ? names[0] : names[1],
-              price: isEven ? prices[0] : prices[1],
-              imgPath: isEven ? images[0] : images[1],
-              rating: "4.8",
-            ),
-          ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9FAF8),
                 borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  isEven ? images[0] : images[1],
-                  height: 100,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
+                border: Border.all(color: const Color(0xFFE8EBE6)),
               ),
-              const SizedBox(height: 12),
-              Text(
-                isEven ? names[0] : names[1],
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                  color: const Color(0xFF363A33),
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              Expanded(
-                child: Text(
-                  "High quality",
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 11,
-                    color: const Color(0xFF91958E),
-                  ),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Row(
                 children: [
+                  const Icon(Icons.search, color: Colors.black54),
+                  const SizedBox(width: 12),
                   Text(
-                    isEven ? prices[0] : prices[1],
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                      color: const Color(0xFFCB8944),
-                    ),
-                  ),
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF363A33),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 16),
+                    "Search drinks, food...",
+                    style: GoogleFonts.inter(color: Colors.black38),
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 24),
+
+            Text(
+              "Recommended for you",
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 0.8,
+              ),
+              itemCount: dummyProducts.length,
+              itemBuilder: (context, index) {
+                final product = dummyProducts[index];
+                return GestureDetector(
+                  onTap: () {
+                    // Navigate to product detail on click
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ProductDetailView(product: product),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFE8EBE6)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            width: double.infinity,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF9FAF8),
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(16),
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.fastfood,
+                              color: Colors.grey,
+                              size: 40,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                product['name'],
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                product['price'],
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFFCB8944),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 40),
+          ],
         ),
       ),
     );

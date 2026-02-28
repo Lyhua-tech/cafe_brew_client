@@ -12,26 +12,10 @@ class OnboardingView extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Top Image
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 563,
+          // Background Image
+          Positioned.fill(
             child: Image.asset(
-              'assets/images/onboarding_top.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-
-          // Bottom Image with some overlap as per Figma
-          Positioned(
-            top: 171,
-            left: 0,
-            right: 0,
-            height: 642,
-            child: Image.asset(
-              'assets/images/onboarding_bottom.png',
+              'assets/images/onboarding_bg.png',
               fit: BoxFit.cover,
             ),
           ),

@@ -130,11 +130,12 @@ class _LoginViewState extends State<LoginView> {
                                 _passController.text,
                               );
                               if (success && context.mounted) {
-                                Navigator.pushReplacement(
+                                Navigator.pushAndRemoveUntil(
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) => const MainLayoutView(),
                                   ),
+                                  (route) => false,
                                 );
                               } else if (authVm.errorMessage != null &&
                                   context.mounted) {

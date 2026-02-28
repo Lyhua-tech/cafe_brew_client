@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'product_detail_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -8,18 +7,17 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header
+              const SizedBox(height: 20),
+
+              // Header Segment
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 20,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -27,152 +25,30 @@ class HomeView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Good Morning, L.Hua",
+                          "Hi L.Hua",
                           style: GoogleFonts.poppins(
-                            color: const Color(0xFF91958E),
+                            color: const Color(0xFF363A33),
                             fontWeight: FontWeight.w400,
-                            fontSize: 14,
+                            fontSize: 15,
                           ),
                         ),
                         Text(
-                          "Grab your coffee!",
+                          "What are you craving?",
                           style: GoogleFonts.poppins(
                             color: const Color(0xFF363A33),
-                            fontWeight: FontWeight.w700,
-                            fontSize: 24,
+                            fontWeight: FontWeight.w400,
+                            fontSize: 17,
+                            letterSpacing: -0.17,
                           ),
                         ),
                       ],
                     ),
                     const CircleAvatar(
-                      radius: 24,
-                      backgroundColor: Color(0xFFF3E9D2),
-                      child: Icon(Icons.person, color: Color(0xFFCB8944)),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Search Bar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Container(
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: const Color(0xFFE8EBE6),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Icon(Icons.search, color: Color(0xFF91958E)),
-                      ),
-                      Expanded(
-                        child: Text(
-                          "Search favorite coffee...",
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF91958E),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: 52,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFCB8944),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.filter_list,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Banner
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.asset(
-                    'assets/images/home_banner.png',
-                    height: 160,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: 160,
-                      color: const Color(0xFFF3E9D2),
-                      alignment: Alignment.center,
-                      child: const Text("Banner Image Not Found"),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Categories
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  "Categories",
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF363A33),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 40,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  children: [
-                    _buildCategoryPill("All Coffee", true),
-                    const SizedBox(width: 12),
-                    _buildCategoryPill("Macchiato", false),
-                    const SizedBox(width: 12),
-                    _buildCategoryPill("Latte", false),
-                    const SizedBox(width: 12),
-                    _buildCategoryPill("Cold Brew", false),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Recommended
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Recommended",
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF363A33),
-                      ),
-                    ),
-                    Text(
-                      "See All",
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFFCB8944),
-                      ),
+                      radius: 20,
+                      backgroundImage: AssetImage(
+                        'assets/images/home_banner.png',
+                      ), // Placeholder
+                      backgroundColor: Color(0xFFE8EBE6),
                     ),
                   ],
                 ),
@@ -180,31 +56,118 @@ class HomeView extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Horizontal Product List
+              // Search Bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFE8EBE6),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Icon(
+                          Icons.search,
+                          color: Color(0xFF91958E),
+                          size: 24,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          "search...",
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF91958E),
+                            fontWeight: FontWeight.w400,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Banners Carousel
               SizedBox(
-                height: 260,
+                height: 140,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   children: [
-                    _buildProductCard(
-                      context,
-                      "Cold Brew",
-                      "\$4.50",
-                      "assets/images/cold_brew.png",
-                      "4.8",
+                    _buildPromoBanner(
+                      title: "35% OFF\non Ice Latte",
+                      bgColor: const Color(0xFFF3E9D2),
+                      imagePath: 'assets/images/cold_brew.png',
                     ),
-                    _buildProductCard(
-                      context,
-                      "Caramel Macchiato",
-                      "\$5.20",
-                      "assets/images/home_banner.png",
-                      "4.9",
+                    const SizedBox(width: 16),
+                    _buildPromoBanner(
+                      title: "25% OFF\non Coconut Cream",
+                      bgColor: const Color(0xFFECF1E8),
+                      imagePath: 'assets/images/home_banner.png',
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 30),
+
+              const SizedBox(height: 32),
+
+              // Announcement Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  "Announcement",
+                  style: GoogleFonts.poppins(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF363A33),
+                    letterSpacing: -0.17,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Announcements List
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    _buildAnnouncementCard(
+                      title: "🎉 Order Out for Delivery!",
+                      description:
+                          "Your food is on the move! Track your order for real-time updates.",
+                      buttonText: "View",
+                      headerColor: const Color(0xFFE7D1A0),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildAnnouncementCard(
+                      title: "🎉 Order Out for Delivery!",
+                      description:
+                          "Your food is on the move! Track your order for real-time updates.",
+                      buttonText: "Order",
+                      headerColor: const Color(0xFFADC4A0),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildAnnouncementCard(
+                      title: "🎉 Order Out for Delivery!",
+                      description:
+                          "Your food is on the move! Track your order for real-time updates.",
+                      buttonText: "View",
+                      headerColor: const Color(0xFFCB8944),
+                    ),
+                    const SizedBox(height: 30),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -212,155 +175,165 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryPill(String text, bool isSelected) {
+  Widget _buildPromoBanner({
+    required String title,
+    required Color bgColor,
+    required String imagePath,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      alignment: Alignment.center,
+      width: 320,
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFCB8944) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isSelected ? const Color(0xFFCB8944) : const Color(0xFFE8EBE6),
-        ),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Text(
-        text,
-        style: GoogleFonts.poppins(
-          color: isSelected ? Colors.white : const Color(0xFF363A33),
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          fontSize: 14,
-        ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -20,
+            bottom: -20,
+            child: Opacity(
+              opacity: 0.1,
+              child: Image.asset(
+                imagePath,
+                width: 150,
+                height: 150,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFF363A33),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 24,
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFCB8944),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          "Buy now",
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    imagePath,
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildProductCard(
-    BuildContext context,
-    String name,
-    String price,
-    String imgPath,
-    String rating,
-  ) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ProductDetailView(
-              title: name,
-              price: price,
-              imgPath: imgPath,
-              rating: rating,
+  Widget _buildAnnouncementCard({
+    required String title,
+    required String description,
+    required String buttonText,
+    required Color headerColor,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            height: 140, // Simulated image height
+            decoration: BoxDecoration(
+              color: headerColor,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
             ),
+            // Optional: you can put an Image here if there's an actual image for the announcement.
           ),
-        );
-      },
-      child: Container(
-        width: 160,
-        margin: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image
-              Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      imgPath,
-                      height: 130,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: const Color(0xFF363A33),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        description,
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 12,
+                          color: const Color(0xFF60655C),
+                        ),
+                      ),
+                    ],
                   ),
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 14),
-                          const SizedBox(width: 4),
-                          Text(
-                            rating,
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                ),
+                const SizedBox(width: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                name,
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                  color: const Color(0xFF363A33),
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                "With Oat Milk",
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 11,
-                  color: const Color(0xFF91958E),
-                ),
-              ),
-              const Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    price,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3E9D2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    buttonText,
                     style: GoogleFonts.poppins(
+                      color: const Color(0xFFCB8944),
                       fontWeight: FontWeight.w700,
-                      fontSize: 18,
-                      color: const Color(0xFF363A33),
+                      fontSize: 15,
                     ),
                   ),
-                  Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFCB8944),
-                      shape: BoxShape.circle,
-                    ),
-                    padding: const EdgeInsets.all(8),
-                    child: const Icon(Icons.add, color: Colors.white, size: 18),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
