@@ -5,7 +5,12 @@ import 'viewmodels/favorites_viewmodel.dart'; // Added this import
 import 'views/splash_view.dart';
 import 'utils/colors.dart';
 
-void main() {
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+
   runApp(
     MultiProvider(
       providers: [

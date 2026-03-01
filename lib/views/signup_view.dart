@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'main_layout_view.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/auth_viewmodel.dart';
 
 class SignUpView extends StatefulWidget {
   const SignUpView({super.key});
@@ -66,7 +67,6 @@ class _SignUpViewState extends State<SignUpView> {
                 ),
               ),
               const SizedBox(height: 30),
-
               Text(
                 "Sign Up",
                 textAlign: TextAlign.center,
@@ -77,56 +77,79 @@ class _SignUpViewState extends State<SignUpView> {
                 ),
               ),
               const SizedBox(height: 30),
-
               _buildTextField(
                 controller: _nameController,
                 hintText: "full name",
               ),
               const SizedBox(height: 16),
-
               _buildTextField(
                 controller: _emailController,
                 hintText: "email address",
               ),
               const SizedBox(height: 16),
-
               _buildTextField(
                 controller: _passController,
                 hintText: "password",
                 isPassword: true,
               ),
               const SizedBox(height: 40),
-
-              SizedBox(
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Sign up Logic
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const MainLayoutView()),
-                      (route) => false,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFCB8944),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              Consumer<AuthViewModel>(
+                builder: (context, authVm, child) {
+                  return SizedBox(
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: authVm.isLoading
+                          ? null
+                          : () async {
+                              bool success = await authVm.signUp(
+                                _nameController.text,
+                                _emailController.text,
+                                _passController.text,
+                              );
+                              if (success && context.mounted) {
+                                // According to endpoints, it initiates registration sending OTP
+                                // You might want to navigate to an OTP Verify view here
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Verification sent! Check your email.'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                                // Temporarily just showing a message and going to login
+                                Navigator.pop(context);
+                              } else if (authVm.errorMessage != null &&
+                                  context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(authVm.errorMessage!),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFCB8944),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: authVm.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              "Sign Up",
+                              style: GoogleFonts.poppins(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    "Sign Up",
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 24),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

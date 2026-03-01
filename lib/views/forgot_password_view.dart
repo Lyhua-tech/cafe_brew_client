@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/auth_viewmodel.dart';
 import 'verify_code_view.dart';
 
 class ForgotPasswordView extends StatefulWidget {
@@ -95,32 +97,64 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
               ),
               const SizedBox(height: 40),
 
-              SizedBox(
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Navigate to verify code page
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const VerifyCodeView()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFCB8944),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              Consumer<AuthViewModel>(
+                builder: (context, authVm, child) {
+                  return SizedBox(
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: authVm.isLoading
+                          ? null
+                          : () async {
+                              final email = _emailController.text;
+                              if (email.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text('Please enter an email address'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                                return;
+                              }
+
+                              bool success = await authVm.forgotPassword(email);
+                              if (success && context.mounted) {
+                                // Navigate to verify code page
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const VerifyCodeView()),
+                                );
+                              } else if (authVm.errorMessage != null &&
+                                  context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(authVm.errorMessage!),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFCB8944),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: authVm.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              "Send Code",
+                              style: GoogleFonts.poppins(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    "Send Code",
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+                  );
+                },
               ),
             ],
           ),
