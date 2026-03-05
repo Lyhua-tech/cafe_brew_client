@@ -90,6 +90,103 @@ Endpoints for user sign-up, login, and session management.
 | ------------ | ------ | -------- | ----------- |
 | refreshToken | string | ✅       | Min 1 char  |
 
+### Responses
+
+> All responses are wrapped in: `{ "statusCode": number, "data": ..., "message": string, "success": boolean }`
+
+#### `POST /auth/register/initiate` — `200`
+
+```json
+{
+  "message": "OTP sent to email",
+  "email": "user@example.com",
+  "otpExpiresAt": "2026-03-04T12:45:00.000Z"
+}
+```
+
+#### `POST /auth/register/verify` — `201`
+
+```json
+{
+  "message": "Registration completed successfully"
+}
+```
+
+#### `POST /auth/login` — `200`
+
+```json
+{
+  "user": {
+    "id": "664abc...",
+    "fullName": "John Doe",
+    "email": "john@example.com",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "updatedAt": "2026-03-01T00:00:00.000Z"
+  },
+  "accessToken": "eyJhbGciOi...",
+  "refreshToken": "eyJhbGciOi..."
+}
+```
+
+#### `POST /auth/forgot-password` — `200`
+
+```json
+{
+  "message": "Password reset OTP sent",
+  "otpExpiresAt": "2026-03-04T12:45:00.000Z"
+}
+```
+
+#### `POST /auth/reset-password` — `200`
+
+```json
+{ "message": "Password reset successfully" }
+```
+
+#### `POST /auth/verify-otp` — `200`
+
+```json
+{ "message": "OTP verified successfully" }
+```
+
+#### `POST /auth/resend-otp` — `200`
+
+```json
+{
+  "message": "OTP resent successfully",
+  "otpExpiresAt": "2026-03-04T12:45:00.000Z"
+}
+```
+
+#### `GET /auth/me` — `200`
+
+```json
+{
+  "id": "664abc...",
+  "fullName": "John Doe",
+  "email": "john@example.com",
+  "createdAt": "2026-01-01T00:00:00.000Z",
+  "updatedAt": "2026-03-01T00:00:00.000Z"
+}
+```
+
+> **Note:** `GET /auth/me` returns a slim user object. For the full profile, use `GET /profile`.
+
+#### `POST /auth/refresh-token` — `200`
+
+```json
+{
+  "accessToken": "eyJhbGciOi...",
+  "refreshToken": "eyJhbGciOi..."
+}
+```
+
+#### `POST /auth/logout` — `200`
+
+```json
+{ "message": "User logged out successfully" }
+```
+
 ---
 
 ## 2. User Profile & Addresses
@@ -188,6 +285,126 @@ Manage personal information and delivery addresses.
 
 Same fields as `POST /users/me/addresses` — all fields are **optional** (partial update).
 
+### Responses
+
+#### `GET /profile` — `200`
+
+```json
+{
+  "_id": "664abc...",
+  "fullName": "John Doe",
+  "email": "john@example.com",
+  "phoneNumber": "0123456789",
+  "profileImage": "https://res.cloudinary.com/...",
+  "dateOfBirth": "1995-06-15T00:00:00.000Z",
+  "gender": "male",
+  "emailVerified": true,
+  "phoneVerified": false,
+  "role": "user",
+  "loyaltyPoints": 250,
+  "loyaltyTier": "silver",
+  "referralCode": "REF7ABC12XY",
+  "referredBy": null,
+  "totalOrders": 12,
+  "totalSpent": 156.5,
+  "preferences": {
+    "notificationsEnabled": true,
+    "emailNotifications": true,
+    "smsNotifications": true,
+    "pushNotifications": true,
+    "language": "en",
+    "currency": "USD",
+    "notifications": {
+      "orderUpdates": true,
+      "promotions": true,
+      "announcements": true,
+      "systemNotifications": true
+    }
+  },
+  "status": "active",
+  "lastLoginAt": "2026-03-04T10:00:00.000Z",
+  "createdAt": "2026-01-01T00:00:00.000Z",
+  "updatedAt": "2026-03-04T10:00:00.000Z"
+}
+```
+
+#### `PUT /profile` — `200`
+
+Returns the updated user profile object (same shape as `GET /profile`).
+
+#### `POST /profile/image` — `200`
+
+Returns the updated user profile object (same shape as `GET /profile`).
+
+#### `PUT /profile/password` — `200`
+
+```json
+{ "message": "Password updated successfully" }
+```
+
+#### `PUT /profile/settings` — `200`
+
+Returns the updated user profile object (same shape as `GET /profile`).
+
+#### `GET /profile/referral` — `200`
+
+````json
+{
+  "referralCode": "REF7ABC12XY",
+  "totalReferrals": 5,
+  "pointsEarned": 500
+}
+```
+
+#### `DELETE /profile` — `200`
+
+```json
+{ "data": null }
+````
+
+#### `GET /users/me/addresses` — `200`
+
+Array of address objects.
+
+```json
+[
+  {
+    "_id": "664abc...",
+    "label": "Home",
+    "fullName": "John Doe",
+    "phoneNumber": "0123456789",
+    "addressLine1": "123 Main St",
+    "addressLine2": "Apt 4",
+    "city": "Phnom Penh",
+    "state": "Phnom Penh",
+    "postalCode": "12000",
+    "country": "Cambodia",
+    "latitude": 11.556,
+    "longitude": 104.928,
+    "isDefault": true,
+    "deliveryInstructions": "Ring doorbell"
+  }
+]
+```
+
+#### `POST /users/me/addresses` — `201`
+
+Returns the newly created address object.
+
+#### `PATCH /users/me/addresses/:addressId` — `200`
+
+Returns the updated address object.
+
+#### `DELETE /users/me/addresses/:addressId` — `200`
+
+```json
+{ "data": null }
+```
+
+#### `PATCH /users/me/addresses/:addressId/default` — `200`
+
+Returns the updated address object with `isDefault: true`.
+
 ---
 
 ## 3. Stores & Locations
@@ -233,6 +450,49 @@ Browse coffee shop locations and their details.
 | tags          | string \| string[] | ❌       | Single tag or array of tags |
 | minPrice      | number             | ❌       | ≥ 0                         |
 | maxPrice      | number             | ❌       | ≥ 0                         |
+
+### Responses
+
+#### `GET /stores` — `200`
+
+Paginated store list: `{ data: Store[], pagination: { page, limit, total, totalPages } }`. If geo params provided, each store includes a `distance` field (km).
+
+#### `GET /stores/slug/:slug` / `GET /stores/:id` — `200`
+
+Full store object (name, slug, description, address, city, phone, email, coordinates, images, operatingHours, rating, isOpen, etc.).
+
+#### `GET /stores/:id/pickup-times` — `200`
+
+Array of pickup time slot objects: `[{ time: "10:00", available: true }, ...]`
+
+#### `GET /stores/:storeId/gallery` — `200`
+
+Array of gallery image URL strings.
+
+#### `GET /stores/:storeId/hours` — `200`
+
+```json
+{
+  "operatingHours": { "monday": { "open": "07:00", "close": "22:00" }, ... },
+  "specialHours": []
+}
+```
+
+#### `GET /stores/:storeId/location` — `200`
+
+```json
+{
+  "address": "123 Coffee St",
+  "city": "Phnom Penh",
+  "latitude": 11.556,
+  "longitude": 104.928,
+  "googleMapsUrl": "..."
+}
+```
+
+#### `GET /stores/:storeId/menu` — `200`
+
+Paginated product list: `{ data: Product[], pagination: { ... } }`
 
 ---
 
@@ -282,6 +542,54 @@ Browse the menu, categories, and product details.
 | minPrice      | number             | ❌       | ≥ 0                         |
 | maxPrice      | number             | ❌       | ≥ 0                         |
 
+### Responses
+
+#### `GET /products` — `200`
+
+Paginated: `{ data: Product[], pagination: { page, limit, total, totalPages } }`
+
+#### `GET /products/search` — `200`
+
+Paginated: `{ data: Product[], pagination: { ... } }`
+
+#### `GET /products/slug/:slug` / `GET /products/:id` — `200`
+
+Full product object (name, slug, description, images, basePrice, currency, sizes, category, tags, allergens, nutritionalInfo, preparationTime, isAvailable, isFeatured, rating, etc.).
+
+#### `GET /products/:id/customizations` — `200`
+
+```json
+{ "productId": "664abc...", "customizations": { "size": [...], "sugarLevel": [...], "iceLevel": [...], "coffeeLevel": [...] } }
+```
+
+#### `GET /products/:id/addons` — `200`
+
+```json
+{ "productId": "664abc...", "addOns": [{ "_id": "...", "name": "Extra Shot", "price": 0.5, ... }] }
+```
+
+#### `GET /categories` — `200`
+
+Array of category objects.
+
+#### `GET /categories/slug/:slug` / `GET /categories/:id` — `200`
+
+Full category object (name, slug, description, imageUrl, parentId, displayOrder, etc.).
+
+#### `GET /categories/:id/subcategories` — `200`
+
+Array of child category objects.
+
+#### `GET /categories/:categoryId/products` — `200`
+
+Paginated: `{ data: Product[], pagination: { ... } }`
+
+#### `GET /addons` — `200`
+
+```json
+{ "addOns": [{ "_id": "...", "name": "Whipped Cream", "price": 0.75, ... }], "count": 5 }
+```
+
 ---
 
 ## 5. Search & Favorites
@@ -327,6 +635,97 @@ Personalized search history and favorite products.
 | Field     | Type   | Required | Constraints            |
 | --------- | ------ | -------- | ---------------------- |
 | productId | string | ✅       | Valid MongoDB ObjectId |
+
+### Responses
+
+#### `GET /search` — `200`
+
+```json
+{
+  "stores": [
+    {
+      "id": "...",
+      "name": "...",
+      "slug": "...",
+      "address": "...",
+      "city": "...",
+      "imageUrl": "...",
+      "rating": 4.5,
+      "isOpen": true,
+      "score": 1.5
+    }
+  ],
+  "products": [
+    {
+      "id": "...",
+      "name": "...",
+      "slug": "...",
+      "description": "...",
+      "basePrice": 3.5,
+      "currency": "USD",
+      "images": [],
+      "isAvailable": true,
+      "rating": 4.2,
+      "score": 1.2
+    }
+  ],
+  "totalResults": 12
+}
+```
+
+#### `GET /search/suggestions` — `200`
+
+Array of suggestion strings: `["Cappuccino", "Caramel Latte", ...]`
+
+#### `GET /search/recent` — `200`
+
+Array of search history objects: `[{ "id": "...", "query": "latte", "searchType": "all", "resultsCount": 5, "createdAt": "..." }]`
+
+#### `DELETE /search/recent` — `200`
+
+`data: null`
+
+#### `DELETE /search/recent/:searchId` — `200`
+
+`data: null`
+
+#### `GET /favorites` — `200`
+
+```json
+{
+  "favorites": [
+    {
+      "favoriteId": "...",
+      "productId": "...",
+      "name": "...",
+      "slug": "...",
+      "description": "...",
+      "images": [],
+      "basePrice": 3.5,
+      "currency": "USD",
+      "isAvailable": true,
+      "rating": 4.5,
+      "totalReviews": 20,
+      "categoryId": "...",
+      "preparationTime": 5,
+      "favoritedAt": "..."
+    }
+  ],
+  "count": 3
+}
+```
+
+#### `POST /favorites/:productId` — `200`
+
+```json
+{ "message": "Product added to favorites", "productId": "664abc..." }
+```
+
+#### `DELETE /favorites/:productId` — `200`
+
+```json
+{ "message": "Product removed from favorites", "productId": "664abc..." }
+```
 
 ---
 
@@ -384,6 +783,70 @@ Manage the active shopping cart.
 | ----- | ------ | -------- | ----------------------- |
 | notes | string | ✅       | Max 1000 chars, trimmed |
 
+### Responses
+
+#### `GET /cart` — `200`
+
+Full cart object with populated items (product details, customizations, addOns, quantities, prices).
+
+#### `POST /cart/items` — `200`
+
+Returns the updated cart object.
+
+#### `PATCH /cart/items/:itemId` — `200`
+
+Returns the updated cart object.
+
+#### `DELETE /cart/items/:itemId` — `200`
+
+Returns the updated cart object.
+
+#### `DELETE /cart` — `200`
+
+Returns the cleared cart object.
+
+#### `POST /cart/validate` — `200`
+
+```json
+{ "isValid": true, "issues": [] }
+```
+
+Or if issues exist:
+
+```json
+{
+  "isValid": false,
+  "issues": [
+    {
+      "itemId": "...",
+      "productId": "...",
+      "issue": "Product no longer available"
+    }
+  ]
+}
+```
+
+#### `PATCH /cart/address` — `200`
+
+Returns the updated cart object.
+
+#### `PATCH /cart/notes` — `200`
+
+Returns the updated cart object.
+
+#### `GET /cart/summary` — `200`
+
+```json
+{
+  "itemCount": 3,
+  "subtotal": 12.5,
+  "discount": 0,
+  "tax": 1.25,
+  "deliveryFee": 2.0,
+  "total": 15.75
+}
+```
+
 ---
 
 ## 7. Checkout & Payments
@@ -439,6 +902,104 @@ No request body required — creates session from authenticated user's cart.
 | transactionId  | string | ❌       | Min 1 char, max 100 chars, trimmed    |
 | paymentDetails | object | ❌       | Free-form key-value pairs             |
 
+### Responses
+
+#### `POST /checkout/validate` — `200`
+
+```json
+{ "isValid": true, "errors": [], "warnings": [] }
+```
+
+#### `POST /checkout` — `201`
+
+```json
+{
+  "id": "checkout_abc...",
+  "userId": "664abc...",
+  "cartId": "664def...",
+  "items": [
+    {
+      "productId": "...",
+      "productName": "...",
+      "productImage": "...",
+      "quantity": 2,
+      "unitPrice": 3.5,
+      "totalPrice": 7.0,
+      "customization": {},
+      "addOns": [],
+      "notes": ""
+    }
+  ],
+  "subtotal": 7.0,
+  "discount": 0,
+  "tax": 0.7,
+  "deliveryFee": 2.0,
+  "total": 9.7,
+  "deliveryAddress": "664ghi...",
+  "promoCode": null,
+  "expiresAt": "2026-03-04T13:00:00.000Z",
+  "createdAt": "2026-03-04T12:45:00.000Z"
+}
+```
+
+#### `GET /checkout/:checkoutId` — `200`
+
+Same shape as `POST /checkout` response.
+
+#### `GET /checkout/payment-methods` — `200`
+
+```json
+[{ "id": "ABA", "name": "ABA Bank", "type": "bank_transfer", "isActive": true }, ...]
+```
+
+#### `POST /checkout/:checkoutId/apply-coupon` — `200`
+
+Returns updated checkout session with `promoCode: { code, discountAmount }` populated.
+
+#### `DELETE /checkout/:checkoutId/remove-coupon` — `200`
+
+Returns updated checkout session with `promoCode: null`.
+
+#### `GET /checkout/delivery-charges` — `200`
+
+```json
+{ "deliveryFee": 2.5, "currency": "USD" }
+```
+
+#### `POST /checkout/:checkoutId/confirm` — `201`
+
+Returns the created order object.
+
+#### `POST /payments/:orderId/intent` — `200`
+
+```json
+{
+  "id": "...",
+  "orderId": "...",
+  "amount": 9.7,
+  "currency": "USD",
+  "paymentMethod": "ABA",
+  "status": "pending",
+  "providerIntentId": "ABA-INTENT-...",
+  "createdAt": "..."
+}
+```
+
+#### `POST /payments/:orderId/confirm` — `200`
+
+```json
+{
+  "order": {
+    "id": "...",
+    "orderNumber": "ORD-001",
+    "status": "confirmed",
+    "paymentStatus": "completed",
+    "total": 9.7
+  },
+  "transactionId": "TXN-..."
+}
+```
+
 ---
 
 ## 8. Orders & Tracking
@@ -484,6 +1045,45 @@ Order history and real-time tracking.
 #### `POST /orders/:orderId/reorder`
 
 No request body required — reorders from the specified order.
+
+### Responses
+
+#### `GET /orders` — `200`
+
+Paginated: `{ items: Order[], pagination: { page, limit, total, totalPages } }`
+
+#### `GET /orders/:orderId` — `200`
+
+Full order object (orderNumber, status, paymentStatus, items with product details, totals, store info, delivery address, timestamps, etc.).
+
+#### `GET /orders/:orderId/tracking` — `200`
+
+```json
+{
+  "orderNumber": "ORD-001",
+  "status": "preparing",
+  "statusHistory": [{ "status": "confirmed", "timestamp": "...", "notes": "" }],
+  "estimatedReadyTime": "...",
+  "actualReadyTime": null,
+  "pickedUpAt": null
+}
+```
+
+#### `GET /orders/:orderId/invoice` — `200`
+
+Returns PDF binary (`Content-Type: application/pdf`).
+
+#### `POST /orders/:orderId/cancel` — `200`
+
+Returns the updated order object with `status: "cancelled"`.
+
+#### `POST /orders/:orderId/rate` — `200`
+
+`data: null`
+
+#### `POST /orders/:orderId/reorder` — `200`
+
+`data: null` (items added to cart).
 
 ---
 
@@ -534,6 +1134,57 @@ Push and in-app notifications.
 | promotions          | boolean | ❌       | Default: `true` |
 | announcements       | boolean | ❌       | Default: `true` |
 | systemNotifications | boolean | ❌       | Default: `true` |
+
+### Responses
+
+#### `POST /notifications/devices/register` — `200`
+
+Returns the device token object (fcmToken, deviceType, deviceId, etc.).
+
+#### `DELETE /notifications/devices/:tokenId` — `200`
+
+`data: null`
+
+#### `GET /notifications` — `200`
+
+Array of notification objects: `[{ _id, type, title, message, imageUrl, isRead, createdAt, ... }]`
+
+#### `GET /notifications/unread-count` — `200`
+
+```json
+{ "count": 5 }
+```
+
+#### `PATCH /notifications/:id/read` — `200`
+
+`data: null`
+
+#### `PATCH /notifications/read-all` — `200`
+
+`data: null`
+
+#### `DELETE /notifications/:id` — `200`
+
+`data: null`
+
+#### `DELETE /notifications` — `200`
+
+`data: null`
+
+#### `GET /notifications/settings` — `200`
+
+```json
+{
+  "orderUpdates": true,
+  "promotions": true,
+  "announcements": true,
+  "systemNotifications": true
+}
+```
+
+#### `PATCH /notifications/settings` — `200`
+
+Returns the updated settings object.
 
 ---
 
@@ -587,6 +1238,48 @@ Help center and promotional content.
 | message     | string | ✅       | Message body text        |
 | attachments | array  | ❌       | Array of attachment URLs |
 
+### Responses
+
+#### `GET /announcements` — `200`
+
+Array of active announcement objects (title, description, imageUrl, actionUrl, startDate, endDate, etc.).
+
+#### `GET /announcements/:id` — `200`
+
+Full announcement object.
+
+#### `POST /announcements/:id/view` — `200`
+
+`data: null`
+
+#### `POST /announcements/:id/click` — `200`
+
+`data: null`
+
+#### `GET /support/faq` — `200`
+
+Array of FAQ objects: `[{ _id, question, answer, category, displayOrder }]`
+
+#### `POST /support/tickets` — `201`
+
+Returns the created ticket object.
+
+#### `GET /support/tickets` — `200`
+
+Paginated: `{ tickets: Ticket[], pagination: { ... } }`
+
+#### `GET /support/tickets/:id` — `200`
+
+Full ticket object with conversation messages.
+
+#### `POST /support/tickets/:id/messages` — `201`
+
+Returns the created message object.
+
+#### `GET /support/tickets/:id/messages` — `200`
+
+Array of message objects: `[{ _id, senderId, senderRole, message, attachments, createdAt }]`
+
 ---
 
 ## 11. Configuration & Miscellaneous
@@ -608,3 +1301,40 @@ File upload via `multipart/form-data`. Refer to your HTTP client's multipart sup
 #### `DELETE /upload`
 
 Provide the file identifier to delete (typically the file URL or ID returned from upload).
+
+### Responses
+
+#### `GET /config/app` — `200`
+
+Key-value map of public configuration: `{ "appName": "Corner Coffee", "currency": "USD", ... }`
+
+#### `GET /config/delivery-zones` — `200`
+
+Array of delivery zone objects: `[{ _id, name, deliveryFee, minOrderAmount, coordinates, estimatedDeliveryTime, isActive }]`
+
+#### `GET /config/health` — `200`
+
+```json
+{
+  "status": "ok",
+  "uptime": 12345.67,
+  "timestamp": "2026-03-04T12:00:00.000Z",
+  "database": { "status": "connected" }
+}
+```
+
+#### `POST /upload` — `200`
+
+```json
+{
+  "url": "https://res.cloudinary.com/...",
+  "public_id": "abc123",
+  "format": "image/jpeg",
+  "original_name": "photo.jpg",
+  "size": 102400
+}
+```
+
+#### `DELETE /upload` — `200`
+
+`data: null`

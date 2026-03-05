@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/auth_viewmodel.dart';
+import 'onboarding_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -8,6 +11,7 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      drawer: const _ProfileDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -25,7 +29,7 @@ class HomeView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Hi L.Hua",
+                          "Hi ${context.watch<AuthViewModel>().currentUser?.name.isNotEmpty == true ? context.watch<AuthViewModel>().currentUser!.name : 'Guest'}",
                           style: GoogleFonts.poppins(
                             color: const Color(0xFF363A33),
                             fontWeight: FontWeight.w400,
@@ -43,12 +47,27 @@ class HomeView extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const CircleAvatar(
-                      radius: 20,
-                      backgroundImage: AssetImage(
-                        'assets/images/home_banner.png',
-                      ), // Placeholder
-                      backgroundColor: Color(0xFFE8EBE6),
+                    Builder(
+                      builder: (context) {
+                        final user = context.watch<AuthViewModel>().currentUser;
+                        return GestureDetector(
+                          onTap: () async {
+                            await context.read<AuthViewModel>().checkAuth();
+                            if (!context.mounted) return;
+                            Scaffold.of(context).openDrawer();
+                          },
+                          child: CircleAvatar(
+                            radius: 20,
+                            backgroundImage:
+                                user?.avatar != null && user!.avatar!.isNotEmpty
+                                    ? NetworkImage(user.avatar!)
+                                    : const AssetImage(
+                                            'assets/images/home_banner.png')
+                                        as ImageProvider,
+                            backgroundColor: const Color(0xFFE8EBE6),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -334,6 +353,185 @@ class HomeView extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ProfileDrawer extends StatefulWidget {
+  const _ProfileDrawer();
+
+  @override
+  State<_ProfileDrawer> createState() => _ProfileDrawerState();
+}
+
+class _ProfileDrawerState extends State<_ProfileDrawer> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AuthViewModel>().refreshCurrentUser();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = context.watch<AuthViewModel>().currentUser;
+    final displayName =
+        (user?.name.isNotEmpty ?? false) ? user!.name : 'Guest User';
+    final displayEmail =
+        (user?.email.isNotEmpty ?? false) ? user!.email : 'guest@example.com';
+
+    return Drawer(
+      width: MediaQuery.of(context).size.width,
+      backgroundColor: const Color(0xFFF5F5F5),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close, size: 28),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 34,
+                    backgroundImage:
+                        user?.avatar != null && user!.avatar!.isNotEmpty
+                            ? NetworkImage(user.avatar!)
+                            : const AssetImage('assets/images/home_banner.png')
+                                as ImageProvider,
+                    backgroundColor: const Color(0xFFE8EBE6),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          displayName,
+                          style: GoogleFonts.poppins(
+                            fontSize: 34 / 1.7,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF363A33),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          displayEmail,
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            color: const Color(0xFF70756B),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+              _sectionTitle('Personal'),
+              const SizedBox(height: 12),
+              _menuTile(icon: Icons.person_outline, title: 'My Account'),
+              _menuTile(icon: Icons.history, title: 'History'),
+              _menuTile(icon: Icons.favorite_border, title: 'Favorites'),
+              const SizedBox(height: 18),
+              _sectionTitle('Shortcuts'),
+              const SizedBox(height: 12),
+              _menuTile(icon: Icons.storefront_outlined, title: 'Stores'),
+              _menuTile(
+                icon: Icons.campaign_outlined,
+                title: 'Announcements',
+              ),
+              const SizedBox(height: 18),
+              _sectionTitle('Contact'),
+              const SizedBox(height: 12),
+              _menuTile(
+                icon: Icons.headset_mic_outlined,
+                title: 'Customer Service',
+              ),
+              _menuTile(icon: Icons.chat_bubble_outline, title: 'Feedback'),
+              _menuTile(icon: Icons.help_outline, title: 'FAQs'),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    await context.read<AuthViewModel>().logout();
+                    if (!context.mounted) return;
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (_) => const OnboardingView(),
+                      ),
+                      (route) => false,
+                    );
+                  },
+                  icon: const Icon(Icons.logout),
+                  label: Text(
+                    'Logout',
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFCB8944),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title) {
+    return Text(
+      title,
+      style: GoogleFonts.poppins(
+        fontSize: 30 / 2,
+        fontWeight: FontWeight.w600,
+        color: const Color(0xFF70756B),
+      ),
+    );
+  }
+
+  Widget _menuTile({required IconData icon, required String title}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFEFEE),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: ListTile(
+        leading: Icon(icon, color: const Color(0xFF70756B)),
+        title: Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 31 / 1.7,
+            color: const Color(0xFF363A33),
+          ),
+        ),
+        trailing: const Icon(Icons.chevron_right, color: Color(0xFFA0A39D)),
+        onTap: () {},
       ),
     );
   }

@@ -35,16 +35,39 @@ class AuthViewModel extends ChangeNotifier {
     setLoading(true);
     try {
       final token = await _authService.getAccessToken();
-      if (token != null) {
-        _currentUser = await _authService.getMe();
+      if (token != null && token.isNotEmpty) {
         _isLoggedIn = true;
+        // Only fetch from server if we don't already have the user in memory.
+        // This prevents a failed getMe() from wiping out a valid _currentUser.
+        if (_currentUser == null) {
+          try {
+            _currentUser = await _authService.getMe();
+          } catch (e) {
+            debugPrint('getMe error (non-fatal, keeping existing user): $e');
+            // Do NOT set _currentUser = null here. Keep whatever we had.
+          }
+        }
+      } else {
+        _isLoggedIn = false;
+        _currentUser = null;
       }
     } catch (e) {
+      debugPrint('checkAuth outer error: $e');
       _isLoggedIn = false;
       _currentUser = null;
     } finally {
       setLoading(false);
       notifyListeners();
+    }
+  }
+
+  /// Force-refreshes the current user from the server (e.g. after profile edit).
+  Future<void> refreshCurrentUser() async {
+    try {
+      _currentUser = await _authService.getMe();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('refreshCurrentUser error: $e');
     }
   }
 

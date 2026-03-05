@@ -32,12 +32,13 @@ class _SplashViewState extends State<SplashView>
 
     _animationController.forward();
 
-    Timer(const Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 3), () async {
       if (!mounted) return;
       final authVm = context.read<AuthViewModel>();
-      Widget nextView = authVm.isLoggedIn
-          ? const MainLayoutView()
-          : const OnboardingView();
+      await authVm.checkAuth();
+      if (!mounted) return;
+      Widget nextView =
+          authVm.isLoggedIn ? const MainLayoutView() : const OnboardingView();
 
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(

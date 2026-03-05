@@ -1,30 +1,16 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
+import 'api_client.dart';
 
 class AuthService {
-  static final String _baseUrl =
-      dotenv.env['BASE_URL'] ?? 'http://localhost:3000/api';
+  final ApiClient _apiClient = ApiClient();
 
-  static const String _accessTokenKey = 'access_token';
+  static const String _accessTokenKey = ApiClient.accessTokenKey;
   static const String _refreshTokenKey = 'refresh_token';
 
   // Helper to get SharedPreferences
   Future<SharedPreferences> get _prefs => SharedPreferences.getInstance();
-
-  // Helper for headers
-  Future<Map<String, String>> _getHeaders({bool withAuth = false}) async {
-    final headers = {'Content-Type': 'application/json'};
-    if (withAuth) {
-      final token = await getAccessToken();
-      if (token != null) {
-        headers['Authorization'] = 'Bearer $token';
-      }
-    }
-    return headers;
-  }
 
   // Token management
   Future<void> saveTokens(String accessToken, String? refreshToken) async {
@@ -55,73 +41,74 @@ class AuthService {
 
   Future<void> initiateRegister(
       String email, String fullName, String password) async {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/auth/register/initiate'),
-      headers: await _getHeaders(),
-      body: jsonEncode({
+    final response = await _apiClient.post(
+      '/auth/register/initiate',
+      body: {
         'email': email,
         'fullName': fullName,
         'password': password,
-      }),
+      },
     );
     if (response.statusCode >= 400) throw Exception(_parseError(response.body));
   }
 
   Future<void> verifyRegister(
       String fullName, String email, String password, String otpCode) async {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/auth/register/verify'),
-      headers: await _getHeaders(),
-      body: jsonEncode({
+    final response = await _apiClient.post(
+      '/auth/register/verify',
+      body: {
         'fullName': fullName,
         'email': email,
         'password': password,
         'otpCode': otpCode,
-      }),
+      },
     );
     if (response.statusCode >= 400) throw Exception(_parseError(response.body));
-    final data = jsonDecode(response.body);
+    final body = jsonDecode(response.body);
+    final data = body['data'] ?? body;
     if (data['accessToken'] != null) {
-      await saveTokens(data['accessToken'], data['refreshToken']);
+      await saveTokens(
+          data['accessToken'] as String, data['refreshToken'] as String?);
     }
   }
 
   Future<User> login(String email, String password) async {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/auth/login'),
-      headers: await _getHeaders(),
-      body: jsonEncode({
+    final response = await _apiClient.post(
+      '/auth/login',
+      body: {
         'email': email,
         'password': password,
-      }),
+      },
     );
     if (response.statusCode >= 400) throw Exception(_parseError(response.body));
 
-    final data = jsonDecode(response.body);
-    await saveTokens(data['accessToken'], data['refreshToken']);
+    final body = jsonDecode(response.body);
+    final data = body['data'] ?? body;
+    final accessToken = data['accessToken'] as String?;
+    if (accessToken == null)
+      throw Exception('Login failed: no access token in response');
+    await saveTokens(accessToken, data['refreshToken'] as String?);
 
     return User.fromJson(data['user'] ?? {});
   }
 
   Future<void> forgotPassword(String email) async {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/auth/forgot-password'),
-      headers: await _getHeaders(),
-      body: jsonEncode({'email': email}),
+    final response = await _apiClient.post(
+      '/auth/forgot-password',
+      body: {'email': email},
     );
     if (response.statusCode >= 400) throw Exception(_parseError(response.body));
   }
 
   Future<void> resetPassword(
       String email, String otpCode, String newPassword) async {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/auth/reset-password'),
-      headers: await _getHeaders(),
-      body: jsonEncode({
+    final response = await _apiClient.post(
+      '/auth/reset-password',
+      body: {
         'email': email,
         'otpCode': otpCode,
         'newPassword': newPassword,
-      }),
+      },
     );
     if (response.statusCode >= 400) throw Exception(_parseError(response.body));
   }
@@ -135,30 +122,28 @@ class AuthService {
     if (verificationType != null) {
       body['verificationType'] = verificationType;
     }
-    final response = await http.post(
-      Uri.parse('$_baseUrl/auth/verify-otp'),
-      headers: await _getHeaders(),
-      body: jsonEncode(body),
+    final response = await _apiClient.post(
+      '/auth/verify-otp',
+      body: body,
     );
     if (response.statusCode >= 400) throw Exception(_parseError(response.body));
   }
 
   Future<void> resendOtp(String email, String verificationType) async {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/auth/resend-otp'),
-      headers: await _getHeaders(),
-      body: jsonEncode({
+    final response = await _apiClient.post(
+      '/auth/resend-otp',
+      body: {
         'email': email,
         'verificationType': verificationType,
-      }),
+      },
     );
     if (response.statusCode >= 400) throw Exception(_parseError(response.body));
   }
 
   Future<User> getMe() async {
-    final response = await http.get(
-      Uri.parse('$_baseUrl/auth/me'),
-      headers: await _getHeaders(withAuth: true),
+    final response = await _apiClient.get(
+      '/auth/me',
+      withAuth: true,
     );
     if (response.statusCode == 401) {
       // Trying to refresh token
@@ -173,25 +158,28 @@ class AuthService {
       throw Exception(_parseError(response.body));
     }
 
-    final data = jsonDecode(response.body);
-    return User.fromJson(
-        data['user'] ?? data); // Adjust according to API response structure
+    final body = jsonDecode(response.body);
+    final data = body['data'] ?? body;
+    return User.fromJson(data['user'] ?? data);
   }
 
   Future<bool> refreshToken() async {
     final rToken = await getRefreshToken();
     if (rToken == null) return false;
 
-    final response = await http.post(
-      Uri.parse('$_baseUrl/auth/refresh-token'),
-      headers: await _getHeaders(),
-      body: jsonEncode({'refreshToken': rToken}),
+    final response = await _apiClient.post(
+      '/auth/refresh-token',
+      body: {'refreshToken': rToken},
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final body = jsonDecode(response.body);
+      final data = body['data'] ?? body;
       if (data['accessToken'] != null) {
-        await saveTokens(data['accessToken'], data['refreshToken']);
+        await saveTokens(
+          data['accessToken'] as String,
+          data['refreshToken'] as String?,
+        );
         return true;
       }
     }
@@ -205,10 +193,9 @@ class AuthService {
 
     if (rToken != null) {
       try {
-        await http.post(
-          Uri.parse('$_baseUrl/auth/logout'),
-          headers: await _getHeaders(),
-          body: jsonEncode({'refreshToken': rToken}),
+        await _apiClient.post(
+          '/auth/logout',
+          body: {'refreshToken': rToken},
         );
       } catch (e) {
         // Ignore logout errors, tokens are already cleared
