@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../models/product.dart';
 import '../viewmodels/favorites_viewmodel.dart';
 import 'product_detail_view.dart';
 
@@ -74,7 +75,7 @@ class FavoritesView extends StatelessWidget {
 
   Widget _buildFavoriteItem(
     BuildContext context,
-    Map<String, dynamic> product,
+    Product product,
     FavoritesViewModel favoritesVm,
   ) {
     return GestureDetector(
@@ -103,7 +104,7 @@ class FavoritesView extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Image Placeholder
+            // Image
             Container(
               width: 80,
               height: 80,
@@ -111,7 +112,17 @@ class FavoritesView extends StatelessWidget {
                 color: const Color(0xFFF9FAF8),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.fastfood, color: Colors.grey),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: product.primaryImage.isNotEmpty
+                    ? Image.network(
+                        product.primaryImage,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.fastfood, color: Colors.grey),
+                      )
+                    : const Icon(Icons.fastfood, color: Colors.grey),
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -119,16 +130,18 @@ class FavoritesView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product['name'] ?? "Unknown",
+                    product.name,
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                       color: const Color(0xFF363A33),
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    product['price'] ?? "\$0.00",
+                    product.formattedPrice,
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: const Color(0xFFCB8944),

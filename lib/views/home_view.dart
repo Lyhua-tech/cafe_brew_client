@@ -1,11 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../models/announcement.dart';
+import '../viewmodels/announcement_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
+import 'announcement_view.dart';
+import 'my_account_view.dart';
 import 'onboarding_view.dart';
 
-class HomeView extends StatelessWidget {
+class HomeView extends StatefulWidget {
   const HomeView({super.key});
+
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AnnouncementViewModel>().loadAnnouncements();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -156,37 +173,7 @@ class HomeView extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Announcements List
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    _buildAnnouncementCard(
-                      title: "🎉 Order Out for Delivery!",
-                      description:
-                          "Your food is on the move! Track your order for real-time updates.",
-                      buttonText: "View",
-                      headerColor: const Color(0xFFE7D1A0),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildAnnouncementCard(
-                      title: "🎉 Order Out for Delivery!",
-                      description:
-                          "Your food is on the move! Track your order for real-time updates.",
-                      buttonText: "Order",
-                      headerColor: const Color(0xFFADC4A0),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildAnnouncementCard(
-                      title: "🎉 Order Out for Delivery!",
-                      description:
-                          "Your food is on the move! Track your order for real-time updates.",
-                      buttonText: "View",
-                      headerColor: const Color(0xFFCB8944),
-                    ),
-                    const SizedBox(height: 30),
-                  ],
-                ),
-              ),
+              _buildAnnouncementsSection(context),
             ],
           ),
         ),
@@ -228,17 +215,18 @@ class HomeView extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         title,
                         style: GoogleFonts.poppins(
                           color: const Color(0xFF363A33),
                           fontWeight: FontWeight.w700,
-                          fontSize: 24,
+                          fontSize: 22,
                           height: 1.1,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -253,7 +241,7 @@ class HomeView extends StatelessWidget {
                           style: GoogleFonts.poppins(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
-                            fontSize: 15,
+                            fontSize: 14,
                           ),
                         ),
                       ),
@@ -277,82 +265,160 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildAnnouncementCard({
-    required String title,
-    required String description,
-    required String buttonText,
-    required Color headerColor,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            height: 140, // Simulated image height
-            decoration: BoxDecoration(
-              color: headerColor,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(24),
+  Widget _buildAnnouncementsSection(BuildContext context) {
+    final vm = context.watch<AnnouncementViewModel>();
+
+    if (vm.isLoading) {
+      // Simple loading shimmer placeholder
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          children: List.generate(
+            2,
+            (_) => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0F0F0),
+                  borderRadius: BorderRadius.circular(24),
+                ),
               ),
             ),
-            // Optional: you can put an Image here if there's an actual image for the announcement.
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: const Color(0xFF363A33),
-                        ),
+        ),
+      );
+    }
+
+    if (vm.announcements.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        child: SizedBox.shrink(),
+      );
+    }
+
+    // Show at most 3 announcements on the home screen
+    final items = vm.announcements.take(3).toList();
+    final headerColors = [
+      const Color(0xFFE7D1A0),
+      const Color(0xFFADC4A0),
+      const Color(0xFFCB8944),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          for (int i = 0; i < items.length; i++) ...[
+            _buildAnnouncementCard(
+              announcement: items[i],
+              fallbackColor: headerColors[i % headerColors.length],
+            ),
+            if (i < items.length - 1) const SizedBox(height: 16),
+          ],
+          const SizedBox(height: 30),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnnouncementCard({
+    required Announcement announcement,
+    required Color fallbackColor,
+  }) {
+    final hasImage =
+        announcement.imageUrl != null && announcement.imageUrl!.isNotEmpty;
+
+    return GestureDetector(
+      onTap: () {
+        context.read<AnnouncementViewModel>().trackClick(announcement.id);
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const AnnouncementView()),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header: real image or colored block
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
+              child: hasImage
+                  ? Image.network(
+                      announcement.imageUrl!,
+                      height: 140,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 140,
+                        color: fallbackColor,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        description,
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 12,
-                          color: const Color(0xFF60655C),
+                    )
+                  : Container(height: 140, color: fallbackColor),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          announcement.title,
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                            color: const Color(0xFF363A33),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF3E9D2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    buttonText,
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xFFCB8944),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
+                        if (announcement.description != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            announcement.description!,
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 12,
+                              color: const Color(0xFF60655C),
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 16),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3E9D2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'View',
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFFCB8944),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -444,7 +510,18 @@ class _ProfileDrawerState extends State<_ProfileDrawer> {
               const SizedBox(height: 28),
               _sectionTitle('Personal'),
               const SizedBox(height: 12),
-              _menuTile(icon: Icons.person_outline, title: 'My Account'),
+              _menuTile(
+                icon: Icons.person_outline,
+                title: 'My Account',
+                onTap: () {
+                  Navigator.of(context).pop(); // close drawer
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const MyAccountView(),
+                    ),
+                  );
+                },
+              ),
               _menuTile(icon: Icons.history, title: 'History'),
               _menuTile(icon: Icons.favorite_border, title: 'Favorites'),
               const SizedBox(height: 18),
@@ -454,6 +531,14 @@ class _ProfileDrawerState extends State<_ProfileDrawer> {
               _menuTile(
                 icon: Icons.campaign_outlined,
                 title: 'Announcements',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const AnnouncementView(),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 18),
               _sectionTitle('Contact'),
@@ -514,7 +599,8 @@ class _ProfileDrawerState extends State<_ProfileDrawer> {
     );
   }
 
-  Widget _menuTile({required IconData icon, required String title}) {
+  Widget _menuTile(
+      {required IconData icon, required String title, VoidCallback? onTap}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -531,7 +617,7 @@ class _ProfileDrawerState extends State<_ProfileDrawer> {
           ),
         ),
         trailing: const Icon(Icons.chevron_right, color: Color(0xFFA0A39D)),
-        onTap: () {},
+        onTap: onTap ?? () {},
       ),
     );
   }
