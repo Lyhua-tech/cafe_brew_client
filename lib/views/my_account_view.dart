@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/profile_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import 'onboarding_view.dart';
+import 'order_history_view.dart';
 
 class MyAccountView extends StatefulWidget {
   const MyAccountView({super.key});
@@ -179,6 +180,28 @@ class _MyAccountViewState extends State<MyAccountView> {
     super.dispose();
   }
 
+  Widget _buildMenuItem(String title, IconData icon, {VoidCallback? onTap}) {
+    return Column(
+      children: [
+        ListTile(
+          leading: Icon(icon, color: const Color(0xFF363A33)),
+          title: Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF363A33),
+            ),
+          ),
+          trailing: const Icon(Icons.arrow_forward_ios,
+              size: 18, color: Color(0xFF91958E)),
+          onTap: onTap,
+        ),
+        const Divider(height: 1, indent: 16, endIndent: 16),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<ProfileViewModel>();
@@ -281,6 +304,18 @@ class _MyAccountViewState extends State<MyAccountView> {
                             ],
                           ),
                         ),
+                      ),
+
+                      _buildMenuItem(
+                        "History",
+                        Icons.history,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const OrderHistoryView()),
+                          );
+                        },
                       ),
 
                       const SizedBox(height: 20),

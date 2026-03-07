@@ -79,6 +79,64 @@ class ProductService {
     return _parseProductList(response.data);
   }
 
+  /// GET /products/:id/customizations
+  Future<Map<String, dynamic>> getProductCustomizations(String id) async {
+    final response = await _apiClient.get('/products/$id/customizations');
+    if ((response.statusCode ?? 0) >= 400) {
+      throw Exception(_parseError(response.data));
+    }
+    return _unwrapMap(response.data);
+  }
+
+  /// GET /products/:id/addons
+  Future<Map<String, dynamic>> getProductAddons(String id) async {
+    final response = await _apiClient.get('/products/$id/addons');
+    if ((response.statusCode ?? 0) >= 400) {
+      throw Exception(_parseError(response.data));
+    }
+    return _unwrapMap(response.data);
+  }
+
+  /// GET /categories/slug/:slug
+  Future<Category> getCategoryBySlug(String slug) async {
+    final response = await _apiClient.get('/categories/slug/$slug');
+    if ((response.statusCode ?? 0) >= 400) {
+      throw Exception(_parseError(response.data));
+    }
+    return Category.fromJson(_unwrapMap(response.data));
+  }
+
+  /// GET /categories/:id
+  Future<Category> getCategoryById(String id) async {
+    final response = await _apiClient.get('/categories/$id');
+    if ((response.statusCode ?? 0) >= 400) {
+      throw Exception(_parseError(response.data));
+    }
+    return Category.fromJson(_unwrapMap(response.data));
+  }
+
+  /// GET /categories/:id/subcategories
+  Future<List<Category>> getSubcategories(String id) async {
+    final response = await _apiClient.get('/categories/$id/subcategories');
+    if ((response.statusCode ?? 0) >= 400) {
+      throw Exception(_parseError(response.data));
+    }
+    final raw = _unwrap(response.data);
+    final list = raw is List ? raw : (raw['categories'] ?? raw['items'] ?? []);
+    return (list as List)
+        .map((e) => Category.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// GET /addons
+  Future<Map<String, dynamic>> getAddons() async {
+    final response = await _apiClient.get('/addons');
+    if ((response.statusCode ?? 0) >= 400) {
+      throw Exception(_parseError(response.data));
+    }
+    return _unwrapMap(response.data);
+  }
+
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
   List<Product> _parseProductList(dynamic raw) {

@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/cart_viewmodel.dart';
+import '../services/checkout_service.dart';
 import 'order_placed_view.dart';
 
-class PaymentView extends StatelessWidget {
+class PaymentView extends StatefulWidget {
   const PaymentView({super.key});
 
   @override
+  State<PaymentView> createState() => _PaymentViewState();
+}
+
+class _PaymentViewState extends State<PaymentView> {
+  final CheckoutService _checkoutService = CheckoutService();
+  bool _isProcessing = false;
+
+  @override
   Widget build(BuildContext context) {
+    final cartVM = context.watch<CartViewModel>();
+    final cart = cartVM.cart;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -41,10 +54,17 @@ class PaymentView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            _buildOrderCard("Iced Latte", "1", "\$4.50"),
-            const SizedBox(height: 12),
-            _buildOrderCard("Pepperoni Cheese Pizza", "2", "\$12.99"),
-
+            if (cart != null && cart.items.isNotEmpty)
+              ...cart.items.map((item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _buildOrderCard(
+                      item.product?.name ?? 'Unknown Item',
+                      item.quantity.toString(),
+                      "\$${item.total.toStringAsFixed(2)}",
+                    ),
+                  )),
+            if (cart == null || cart.items.isEmpty)
+              const Text("Your cart is empty."),
             const SizedBox(height: 32),
             Text(
               "Payment Method",
@@ -71,7 +91,6 @@ class PaymentView extends StatelessWidget {
               Icons.money,
               isSelected: false,
             ),
-
             const SizedBox(height: 40),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -84,7 +103,9 @@ class PaymentView extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "\$32.12",
+                  cart != null
+                      ? "\$${cart.total.toStringAsFixed(2)}"
+                      : "\$0.00",
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -93,33 +114,67 @@ class PaymentView extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
               height: 54,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const OrderPlacedView(),
-                    ),
-                  );
-                },
+                onPressed: _isProcessing
+                    ? null
+                    : () async {
+                        setState(() => _isProcessing = true);
+                        try {
+                          // Create the backend order first
+                          final checkoutRes =
+                              await _checkoutService.createCheckout();
+                          final checkoutId =
+                              checkoutRes['_id'] ?? checkoutRes['id'];
+
+                          if (checkoutId != null) {
+                            // Confirm payment to finalize the order
+                            await _checkoutService.confirmCheckout(
+                                checkoutId, 'Credit Card');
+                          }
+
+                          if (!context.mounted) return;
+                          await cartVM.clearCart();
+
+                          if (!context.mounted) return;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const OrderPlacedView(),
+                            ),
+                          );
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text('Failed to place order: $e')),
+                          );
+                        } finally {
+                          if (mounted) setState(() => _isProcessing = false);
+                        }
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFCB8944),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(
-                  "Place Order",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+                child: _isProcessing
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))
+                    : Text(
+                        "Place Order",
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
           ],

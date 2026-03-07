@@ -19,17 +19,28 @@ class CartItem {
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
     Product? parsedProduct;
+    String pId = '';
+
     if (json['product'] != null && json['product'] is Map) {
       parsedProduct = Product.fromJson(json['product'] as Map<String, dynamic>);
+      pId = parsedProduct.id;
+    } else if (json['productId'] != null && json['productId'] is Map) {
+      parsedProduct =
+          Product.fromJson(json['productId'] as Map<String, dynamic>);
+      pId = parsedProduct.id;
+    }
+
+    if (pId.isEmpty && json['productId'] is String) {
+      pId = json['productId'];
     }
 
     return CartItem(
       id: json['_id'] ?? json['id'] ?? '',
-      productId: json['productId'] ?? (parsedProduct?.id ?? ''),
+      productId: pId,
       product: parsedProduct,
       quantity: json['quantity'] ?? 1,
-      price: (json['price'] ?? 0).toDouble(),
-      total: (json['total'] ?? 0).toDouble(),
+      price: (json['price'] ?? json['unitPrice'] ?? 0).toDouble(),
+      total: (json['total'] ?? json['totalPrice'] ?? 0).toDouble(),
     );
   }
 }
@@ -65,16 +76,30 @@ class Cart {
             .toList()
         : <CartItem>[];
 
+    double jsonSubtotal = (json['subtotal'] ?? 0).toDouble();
+    if (jsonSubtotal == 0 && items.isNotEmpty) {
+      jsonSubtotal = items.fold(0.0, (sum, item) => sum + item.total);
+    }
+
+    double jsonTax = (json['tax'] ?? 0).toDouble();
+    double jsonDeliveryFee = (json['deliveryFee'] ?? 0).toDouble();
+    double jsonDiscount = (json['discount'] ?? 0).toDouble();
+
+    double jsonTotal = (json['total'] ?? json['totalPrice'] ?? 0).toDouble();
+    if (jsonTotal == 0 && jsonSubtotal > 0) {
+      jsonTotal = jsonSubtotal + jsonTax + jsonDeliveryFee - jsonDiscount;
+    }
+
     return Cart(
       id: json['_id'] ?? json['id'] ?? '',
       items: items,
       addressId: json['addressId'],
       notes: json['notes'],
-      subtotal: (json['subtotal'] ?? 0).toDouble(),
-      tax: (json['tax'] ?? 0).toDouble(),
-      deliveryFee: (json['deliveryFee'] ?? 0).toDouble(),
-      discount: (json['discount'] ?? 0).toDouble(),
-      total: (json['total'] ?? 0).toDouble(),
+      subtotal: jsonSubtotal,
+      tax: jsonTax,
+      deliveryFee: jsonDeliveryFee,
+      discount: jsonDiscount,
+      total: jsonTotal,
     );
   }
 }

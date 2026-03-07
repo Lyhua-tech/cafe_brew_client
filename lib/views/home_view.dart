@@ -7,6 +7,7 @@ import '../viewmodels/auth_viewmodel.dart';
 import 'announcement_view.dart';
 import 'my_account_view.dart';
 import 'onboarding_view.dart';
+import 'order_history_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -522,7 +523,18 @@ class _ProfileDrawerState extends State<_ProfileDrawer> {
                   );
                 },
               ),
-              _menuTile(icon: Icons.history, title: 'History'),
+              _menuTile(
+                icon: Icons.history,
+                title: 'History',
+                onTap: () {
+                  Navigator.of(context).pop(); // close drawer
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const OrderHistoryView(),
+                    ),
+                  );
+                },
+              ),
               _menuTile(icon: Icons.favorite_border, title: 'Favorites'),
               const SizedBox(height: 18),
               _sectionTitle('Shortcuts'),

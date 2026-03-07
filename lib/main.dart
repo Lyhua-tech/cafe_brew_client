@@ -6,6 +6,7 @@ import 'viewmodels/profile_viewmodel.dart';
 import 'viewmodels/announcement_viewmodel.dart';
 import 'viewmodels/product_viewmodel.dart';
 import 'viewmodels/cart_viewmodel.dart';
+import 'viewmodels/order_viewmodel.dart';
 import 'views/splash_view.dart';
 import 'utils/colors.dart';
 
@@ -24,6 +25,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => AnnouncementViewModel()),
         ChangeNotifierProvider(create: (_) => ProductViewModel()),
         ChangeNotifierProvider(create: (_) => CartViewModel()),
+        ChangeNotifierProvider(create: (_) => OrderViewModel()),
       ],
       child: const MyApp(),
     ),
