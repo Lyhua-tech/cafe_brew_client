@@ -30,7 +30,6 @@ class AddressService {
     return _unwrapMap(response.data);
   }
 
-  /// PATCH /cart/address
   Future<Map<String, dynamic>> setAddressForCart(String addressId) async {
     final response = await _apiClient.patch(
       '/cart/address',
@@ -46,7 +45,10 @@ class AddressService {
   /// Helper logic to bypass the "address required" checkout rule.
   /// Checks if the user has an address, creates a default "Pickup - CAMKO" address if not,
   /// and applies it to the cart.
-  Future<String> ensurePickupAddressForCart() async {
+  Future<String> ensurePickupAddressForCart({
+    String? storeName,
+    String? storeAddress,
+  }) async {
     final addresses = await getAddresses();
 
     String addressId;
@@ -56,7 +58,8 @@ class AddressService {
         "label": "Pickup",
         "fullName": "Pickup User",
         "phoneNumber": "0123456789",
-        "addressLine1": "CAMKO - 123 Main St, Apt 4B",
+        "addressLine1":
+            "${storeName ?? 'CAMKO'} - ${storeAddress ?? '123 Main St, Apt 4B'}",
         "city": "Phnom Penh",
         "state": "Phnom Penh",
         "country": "Cambodia",

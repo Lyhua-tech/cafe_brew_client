@@ -5,6 +5,7 @@ import '../models/cart.dart';
 import '../viewmodels/cart_viewmodel.dart';
 import '../services/checkout_service.dart';
 import '../services/address_service.dart';
+import '../services/store_service.dart';
 import 'order_placed_view.dart';
 
 class CartView extends StatefulWidget {
@@ -17,17 +18,40 @@ class CartView extends StatefulWidget {
 class _CartViewState extends State<CartView> {
   final CheckoutService _checkoutService = CheckoutService();
   final AddressService _addressService = AddressService();
+  final StoreService _storeService = StoreService();
 
   bool _isProcessing = false;
   String _selectedPickupTime = 'Now';
   String _selectedPaymentMethod = 'ACLEDA Bank';
+
+  List<dynamic> _stores = [];
+  Map<String, dynamic>? _selectedStore;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CartViewModel>().loadCart();
+      _loadStores();
     });
+  }
+
+  Future<void> _loadStores() async {
+    try {
+      final res = await _storeService.getStores();
+      // The backend returns paginated result: { "data": [...stores], "pagination": {...} }
+      final items = res['data'] as List<dynamic>?;
+      if (items != null && items.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _stores = items;
+            _selectedStore = items.first;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Failed to load stores: $e");
+    }
   }
 
   @override
@@ -201,6 +225,10 @@ class _CartViewState extends State<CartView> {
                             ...cart.items.map((item) =>
                                 _buildCartItemCard(context, item, vm)),
 
+                            const SizedBox(height: 24),
+
+                            // Store Selector
+                            _buildStoreSelector(),
                             const SizedBox(height: 24),
 
                             // Subtotal section
@@ -607,7 +635,11 @@ class _CartViewState extends State<CartView> {
     try {
       // 1. Ensure user has an address on file and patch it to the cart
       // Bypass the validation requirement since we support local pickup
-      await _addressService.ensurePickupAddressForCart();
+      await _addressService.ensurePickupAddressForCart(
+        storeName: _selectedStore?['name']?.toString(),
+        storeAddress: _selectedStore?['address']?.toString() ??
+            _selectedStore?['city']?.toString(),
+      );
 
       // 2. Validate Cart
       bool isValid = await vm.validateCheckout();
@@ -622,13 +654,25 @@ class _CartViewState extends State<CartView> {
 
       if (checkoutId != null) {
         // 4. Confirm payment to finalize the order
-        await _checkoutService.confirmCheckout(checkoutId, 'Credit Card');
+        String paymentParam = 'Cash';
+        if (_selectedPaymentMethod.contains('ACLEDA')) paymentParam = 'ACLEDA';
+        if (_selectedPaymentMethod.contains('ABA')) paymentParam = 'ABA';
+        if (_selectedPaymentMethod.contains('Wing')) paymentParam = 'Wing';
+
+        await _checkoutService.confirmCheckout(checkoutId, paymentParam);
       } else {
         throw Exception("Failed to retrieve checkout session ID");
       }
 
       if (!context.mounted) return;
-      await vm.clearCart();
+
+      try {
+        await vm.clearCart();
+      } catch (e) {
+        // The backend automatically clears the cart on successful checkout confirmation
+        // which makes clearCart() throw a 404 Not Found. We can safely ignore this.
+        await vm.loadCart();
+      }
 
       if (!context.mounted) return;
       Navigator.push(
@@ -645,5 +689,119 @@ class _CartViewState extends State<CartView> {
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
+  }
+
+  Widget _buildStoreSelector() {
+    final storeName = _selectedStore?['name']?.toString() ?? 'CAMKO';
+    final storeAddress = _selectedStore?['address']?.toString() ??
+        _selectedStore?['city']?.toString() ??
+        '123 Main St, Apt 4B';
+
+    return GestureDetector(
+      onTap: _showStoreSelectionModal,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9FAF8),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.location_on_outlined, color: Colors.black54),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Come to pickup here",
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: const Color(0xFF8A8A8A),
+                    ),
+                  ),
+                  Text(
+                    "$storeName - $storeAddress",
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF363A33),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showStoreSelectionModal() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Select a Store",
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (_stores.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text("No stores available to select."),
+                )
+              else
+                ..._stores.map((store) {
+                  final name = store['name'] ?? 'Unknown Store';
+                  final address = store['address']?.toString() ??
+                      store['city']?.toString() ??
+                      'No address provided';
+
+                  // In typical payloads, Mongo _id or id is tracked
+                  final storeId = store['id'] ?? store['_id'];
+                  final selectedId =
+                      _selectedStore?['id'] ?? _selectedStore?['_id'];
+                  final isSelected =
+                      selectedId != null && storeId == selectedId;
+
+                  return ListTile(
+                    leading:
+                        const Icon(Icons.storefront, color: Color(0xFFCB8944)),
+                    title: Text(name,
+                        style:
+                            GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                    subtitle: Text(address),
+                    trailing: isSelected
+                        ? const Icon(Icons.check_circle,
+                            color: Color(0xFFCB8944))
+                        : null,
+                    onTap: () {
+                      setState(() {
+                        _selectedStore = store;
+                      });
+                      Navigator.pop(context);
+                    },
+                  );
+                }),
+            ],
+          ),
+        );
+      },
+    );
   }
 }

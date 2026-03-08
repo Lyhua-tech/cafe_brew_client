@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/cart.dart';
 import '../models/product.dart';
 import '../services/cart_service.dart';
+import '../services/order_service.dart';
 
 class CartViewModel extends ChangeNotifier {
   final CartService _service = CartService();
@@ -43,6 +44,23 @@ class CartViewModel extends ChangeNotifier {
 
     try {
       _cart = await _service.addItem(product.id, quantity);
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      rethrow;
+    } finally {
+      _isActionLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> reorder(String orderId) async {
+    _isActionLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await OrderService().reorder(orderId);
+      await loadCart(); // Refresh the cart with the newly added items
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       rethrow;

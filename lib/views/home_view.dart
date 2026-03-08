@@ -8,6 +8,8 @@ import 'announcement_view.dart';
 import 'my_account_view.dart';
 import 'onboarding_view.dart';
 import 'order_history_view.dart';
+import 'favorites_view.dart';
+import 'stores_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -535,11 +537,33 @@ class _ProfileDrawerState extends State<_ProfileDrawer> {
                   );
                 },
               ),
-              _menuTile(icon: Icons.favorite_border, title: 'Favorites'),
+              _menuTile(
+                icon: Icons.favorite_border,
+                title: 'Favorites',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const FavoritesView(),
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 18),
               _sectionTitle('Shortcuts'),
               const SizedBox(height: 12),
-              _menuTile(icon: Icons.storefront_outlined, title: 'Stores'),
+              _menuTile(
+                icon: Icons.storefront_outlined,
+                title: 'Stores',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const StoresView(),
+                    ),
+                  );
+                },
+              ),
               _menuTile(
                 icon: Icons.campaign_outlined,
                 title: 'Announcements',

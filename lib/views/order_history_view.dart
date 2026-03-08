@@ -3,8 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../viewmodels/order_viewmodel.dart';
+import '../viewmodels/cart_viewmodel.dart';
 import '../models/order.dart';
 import 'order_detail_view.dart';
+import 'cart_view.dart';
 
 class OrderHistoryView extends StatefulWidget {
   const OrderHistoryView({super.key});
@@ -62,15 +64,18 @@ class _OrderHistoryViewState extends State<OrderHistoryView>
           preferredSize: const Size.fromHeight(60),
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: const Color(0xFFF9FAF8),
               borderRadius: BorderRadius.circular(8),
             ),
             child: TabBar(
               controller: _tabController,
+              indicatorSize: TabBarIndicatorSize.tab,
+              dividerColor: Colors.transparent,
               indicator: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(6),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
@@ -86,8 +91,8 @@ class _OrderHistoryViewState extends State<OrderHistoryView>
               unselectedLabelStyle: GoogleFonts.poppins(
                   fontWeight: FontWeight.w500, fontSize: 14),
               tabs: const [
-                Tab(child: Text("Order")),
-                Tab(child: Text("Transaction")),
+                Tab(text: "Order"),
+                Tab(text: "Transaction"),
               ],
             ),
           ),
@@ -210,11 +215,16 @@ class _OrderHistoryViewState extends State<OrderHistoryView>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            promptText,
-                            style: GoogleFonts.inter(
-                                color: Colors.grey, fontSize: 12),
+                          Expanded(
+                            child: Text(
+                              promptText,
+                              style: GoogleFonts.inter(
+                                  color: Colors.grey, fontSize: 12),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           Text(
                             dateStr,
                             style: GoogleFonts.inter(
@@ -233,12 +243,18 @@ class _OrderHistoryViewState extends State<OrderHistoryView>
                             style: GoogleFonts.inter(
                                 color: Colors.grey, fontSize: 12),
                           ),
-                          Text(
-                            summaryText,
-                            style: GoogleFonts.inter(
-                                color: Colors.black87,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              summaryText,
+                              textAlign: TextAlign.right,
+                              style: GoogleFonts.inter(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),
@@ -270,8 +286,23 @@ class _OrderHistoryViewState extends State<OrderHistoryView>
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () {
-                      // Logic to reorder
+                    onPressed: () async {
+                      if (order.items.isEmpty) return;
+
+                      final vm = context.read<CartViewModel>();
+
+                      // Show a loading indicator using context if preferred,
+                      // but the built-in viewmodel's _isActionLoading syncs across state
+                      // wait for reorder completion
+                      await vm.reorder(order.id);
+
+                      if (!context.mounted) return;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CartView(),
+                        ),
+                      );
                     },
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),

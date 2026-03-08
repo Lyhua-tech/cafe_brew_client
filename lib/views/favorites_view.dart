@@ -5,8 +5,21 @@ import '../models/product.dart';
 import '../viewmodels/favorites_viewmodel.dart';
 import 'product_detail_view.dart';
 
-class FavoritesView extends StatelessWidget {
+class FavoritesView extends StatefulWidget {
   const FavoritesView({super.key});
+
+  @override
+  State<FavoritesView> createState() => _FavoritesViewState();
+}
+
+class _FavoritesViewState extends State<FavoritesView> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FavoritesViewModel>().loadFavorites();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +28,13 @@ class FavoritesView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading:
-            const SizedBox.shrink(), // No back button since it's a root tab
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new,
+                    size: 20, color: Color(0xFF363A33)),
+                onPressed: () => Navigator.pop(context),
+              )
+            : const SizedBox.shrink(),
         title: Text(
           "Favorites",
           style: GoogleFonts.poppins(
@@ -29,6 +47,12 @@ class FavoritesView extends StatelessWidget {
       ),
       body: Consumer<FavoritesViewModel>(
         builder: (context, favoritesVm, child) {
+          if (favoritesVm.isLoading && favoritesVm.favorites.isEmpty) {
+            return const Center(
+              child: CircularProgressIndicator(color: Color(0xFFCB8944)),
+            );
+          }
+
           final favorites = favoritesVm.favorites;
 
           if (favorites.isEmpty) {
